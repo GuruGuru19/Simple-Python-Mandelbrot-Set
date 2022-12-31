@@ -61,18 +61,26 @@ def plot(x, y, r):
     # prints estimated time in s, h and number of steps
     print(f"estimated time {steps_count * AVG_TIME_PER_STEP}s or {(steps_count * AVG_TIME_PER_STEP) / 3600}h (steps: {steps_count})")
 
-    # saves time at start of 
+    # saves time at start
     all_start_time = timeNow()
 
     y *= -1
+    # makes the x and y values matrices
     x_values, y_values = np.mgrid[y - r:y + r:PIXELS * 1j, x - r:x + r:PIXELS * 1j]
+
+    # make a matrix of complex numbers (every cell represent a pixel)
     complex_numbers = x_values * 1j + y_values
 
+    # calculation
     output = mandelbrotSet(complex_numbers, MAX_ITER)
 
-    dt = timeNow() - all_start_time;
+    # how long it all took
+    dt = timeNow() - all_start_time
+    # printing time in ms and s and h
     print(f"time took: {dt}ms or {dt / 1000}s or {dt / (1000 * 60 * 60)}h")
+    # printing average time per iteration
     print(f"avg time per iter: {(dt / MAX_ITER) / 1000}s")
+    # printing the starting values
     print(f"X: {x}, Y: {y}, R: {r}")
 
     return output
@@ -89,27 +97,34 @@ def onclick(event):
     # distance per pixel
     resolution = 2 * onclick.R/PIXELS
 
+    # translate the pixels to real values
     xv = onclick.X + xp * resolution
     yv = onclick.Y + yp * resolution
 
     # Only handle right clicks
     if event.button == 3:
         print(f'Right clicked at x={xv}, y={yv}')
-        onclick.R *= ZOOM
+        onclick.R *= ZOOM  # zoom out
 
+    # Only handle middle clicks
     if event.button == 2:
         print(f'Middle clicked  at x={xv}, y={yv}')
 
     # Only handle left clicks
     if event.button == 1:
         print(f'Left clicked  at x={xv}, y={yv}')
-        onclick.R /= ZOOM
+        onclick.R /= ZOOM  # zoom in
 
+    #  zoom in or out
     if event.button == 1 or event.button == 3:
+        #  makes new pixels
         newC = plot(xv, yv, onclick.R)
+
+        # updates values
         onclick.X = xv
         onclick.Y = yv
 
+        #  show on screen
         plt.cla()
         plt.imshow(newC)
         fig.canvas.draw()
