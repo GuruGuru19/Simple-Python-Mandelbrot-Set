@@ -1,31 +1,30 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
+from matplotlib.animation import FuncAnimation
 
-AVG_TIME_PER_STEP = 1.70924E-08;
+AVG_TIME_PER_STEP = 1.70924E-08
 
 EXPLOR_MODE = False
 
-PIXELS = 500
-MAX_ITER = 1000
-ZOOM = 5
+PIXELS = 500  # img size
+MAX_ITER = 1500
+ZOOM = 5  # zooming multiplier
 
-start_X = 0
-start_Y = 0
-start_R = 2
+
+# starting position
+start_X = -4.621603e-1
+start_Y = -5.823998e-1
+start_R = 2.633507e-9
 
 # Create a figure and a subplot
 fig, ax = plt.subplots()
-
-frame = np.zeros((PIXELS, PIXELS))
-
 
 ax.xaxis.set_visible(False)
 ax.yaxis.set_visible(False)
 
 
-
-
+# returns current time in ms
 def timeNow():
     # Get the current time in seconds
     seconds = datetime.now().timestamp()
@@ -36,7 +35,7 @@ def timeNow():
     return milliseconds
 
 
-def mendelbrotSet(complex_numbers, max_iter):
+def mandelbrotSet(complex_numbers, max_iter):
     frame = np.zeros((PIXELS, PIXELS), dtype='int32')
     c = complex_numbers
     z = c
@@ -57,19 +56,24 @@ def mendelbrotSet(complex_numbers, max_iter):
 
 
 def plot(x, y, r):
+    # number of steps
     steps_count = PIXELS * PIXELS * MAX_ITER
+    # prints estimated time in s, h and number of steps
     print(f"estimated time {steps_count * AVG_TIME_PER_STEP}s or {(steps_count * AVG_TIME_PER_STEP) / 3600}h (steps: {steps_count})")
+
+    # saves time at start of 
     all_start_time = timeNow()
 
     y *= -1
     x_values, y_values = np.mgrid[y - r:y + r:PIXELS * 1j, x - r:x + r:PIXELS * 1j]
     complex_numbers = x_values * 1j + y_values
 
-    output = mendelbrotSet(complex_numbers, MAX_ITER)
+    output = mandelbrotSet(complex_numbers, MAX_ITER)
 
     dt = timeNow() - all_start_time;
     print(f"time took: {dt}ms or {dt / 1000}s or {dt / (1000 * 60 * 60)}h")
     print(f"avg time per iter: {(dt / MAX_ITER) / 1000}s")
+    print(f"X: {x}, Y: {y}, R: {r}")
 
     return output
 
@@ -105,22 +109,30 @@ def onclick(event):
         newC = plot(xv, yv, onclick.R)
         onclick.X = xv
         onclick.Y = yv
-        print(f"X: {xv}, Y: {yv}, R: {onclick.R}")
 
         plt.cla()
         plt.imshow(newC)
         fig.canvas.draw()
-
-def animate(i):
-    pass
-
 
 onclick.R = start_R
 onclick.X = start_X
 onclick.Y = start_Y
 
 
-c = plot(start_X, start_Y, start_R)
+def animate(i):
+    if animate.zoom <= start_R:
+        return
+    animate.zoom /= ZOOM
+    c = plot(start_X, start_Y, animate.zoom)
+    plt.cla()
+    plt.imshow(c)
+    fig.canvas.draw()
+
+
+
+animate.zoom = 4
+
+c = plot(start_X, start_Y, 3)
 
 # Plot something on the subplot
 plt.imshow(c)
@@ -128,7 +140,8 @@ plt.imshow(c)
 if EXPLOR_MODE:
     # Connect the onclick function to the mouse click event
     fig.canvas.mpl_connect('button_press_event', onclick)
-
+else:
+    ani = FuncAnimation(fig, animate, interval=1)
 # Show the plot
 plt.tight_layout()
 plt.show()
